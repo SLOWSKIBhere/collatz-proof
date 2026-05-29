@@ -32,3 +32,10 @@ Thumbs.db
 
 # JAX
 jax_cache/
+
+# Non-Project files
+
+111.md
+111.tex
+Untitled.ipynb
+scripts/profiling/

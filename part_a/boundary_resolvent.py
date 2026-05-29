@@ -1,7 +1,6 @@
 """
 Test for Theorem 8.4: Boundary Values of the Resolvent.
 
-Exact replica of the original Jupyter implementation — optimised.
 Two tests:
   1. Fredholm difference: verifies rank(U_nil - S) = 1 (compact perturbation).
   2. Resolvent boundary: detects peaks of ‖(zI - U)^{-1}‖ on the unit circle.
@@ -61,7 +60,7 @@ def test_boundary_resolvent(
     nuclear_norm = float(np.sum(svd_vals))
 
     # ================================================================
-    # Test 2: Resolvent peaks on unit circle
+    # Test 2: Resolvent peaks on unit circle (r=1.0 only)
     # ================================================================
     numbers_b, M_b = compute_closure_safe([1], max_steps=50, max_size=max_size_boundary)
     U_sparse_b, _, _ = build_koopman_matrix(numbers_b)
@@ -69,19 +68,16 @@ def test_boundary_resolvent(
     I = np.eye(M_b)
 
     theta_vals = np.linspace(0, 2 * np.pi, num_theta)
-    r_values = [1.0, 1.1, 1.2]
-    norms = np.zeros((3, num_theta))
+    norms_r10 = np.zeros(num_theta)
 
     for i, theta in enumerate(theta_vals):
-        for j, r in enumerate(r_values):
-            z = r * np.exp(1j * theta)
-            try:
-                R = np.linalg.inv(z * I - U_dense_b)
-                norms[j, i] = np.linalg.norm(R, 'fro')
-            except np.linalg.LinAlgError:
-                norms[j, i] = np.inf
+        z = 1.0 * np.exp(1j * theta)
+        try:
+            R = np.linalg.inv(z * I - U_dense_b)
+            norms_r10[i] = np.linalg.norm(R, 'fro')
+        except np.linalg.LinAlgError:
+            norms_r10[i] = np.inf
 
-    norms_r10 = norms[0]
     finite_mask = np.isfinite(norms_r10)
     mean_norm = float(np.mean(norms_r10[finite_mask])) if np.any(finite_mask) else 0.0
     threshold = mean_norm * 5
@@ -90,9 +86,9 @@ def test_boundary_resolvent(
     peak_mask = (norms_r10 > threshold) | ~finite_mask
     peaks = theta_vals[peak_mask].tolist()
 
-    # Evaluate norms at z=+1 (θ=0 or 2π) and z=-1 (θ=π)
-    idx_plus_one = 0  # θ=0
-    idx_minus_one = num_theta // 2  # θ=π
+    # Evaluate norms at z=+1 (θ=0) and z=-1 (θ=π)
+    idx_plus_one = 0
+    idx_minus_one = num_theta // 2
     norm_plus_one = float(norms_r10[idx_plus_one]) if np.isfinite(norms_r10[idx_plus_one]) else np.inf
     norm_minus_one = float(norms_r10[idx_minus_one]) if np.isfinite(norms_r10[idx_minus_one]) else np.inf
 
@@ -104,7 +100,6 @@ def test_boundary_resolvent(
     suppression_ratio = norm_plus_one / max(norm_minus_one, 1e-10)
 
     # Test passes when +1 peak is detected AND -1 peak is suppressed
-    # (i.e., either absent from peaks OR significantly weaker than +1)
     passed = bool(peak_near_plus_one and not peak_near_minus_one)
 
     return {
@@ -131,7 +126,5 @@ def test_boundary_resolvent(
             'Unexpected peak pattern.'
         ),
         'theta_vals': theta_vals.tolist(),
-        'norms_r10': norms[0].tolist(),
-        'norms_r11': norms[1].tolist(),
-        'norms_r12': norms[2].tolist(),
+        'norms_r10': norms_r10.tolist(),
     }

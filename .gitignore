@@ -39,3 +39,4 @@ jax_cache/
 111.tex
 Untitled.ipynb
 scripts/profiling/.venv/
+.venv/

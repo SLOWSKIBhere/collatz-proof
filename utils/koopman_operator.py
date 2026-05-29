@@ -99,27 +99,14 @@ def compute_closure_safe(start_numbers, max_steps=100, max_size=50000):
     return sorted_numbers, len(sorted_numbers)
 
 
-def _build_lookup(elements: list, mapping: dict) -> np.ndarray:
-    """
-    Build a vectorised lookup array for O(1) mapping of Collatz numbers
-    to matrix indices.
-    """
-    max_val = max(elements)
-    lookup = np.full(max_val + 1, -1, dtype=np.int64)
-    for num, idx in mapping.items():
-        lookup[num] = idx
-    return lookup
-
-
 def build_koopman_matrix(closure) -> tuple:
     """
     Build the Koopman matrix U for the given closed set.
-    Fully vectorised using unified backend and array lookup.
+    Uses unified backend via accelerated_collatz for computing next values.
     """
     elements = sorted(closure) if isinstance(closure, set) else list(closure)
     N = len(elements)
 
-    # Build mapping
     mapping = {n: i for i, n in enumerate(elements)}
     reverse_mapping = {i: n for n, i in mapping.items()}
 
@@ -127,13 +114,10 @@ def build_koopman_matrix(closure) -> tuple:
     elements_arr = np.array(elements, dtype=np.int64)
     nxt_arr = accelerated_collatz(elements_arr)
 
-    # Vectorised lookup: build lookup array, mask invalid
-    lookup = _build_lookup(elements, mapping)
-    in_range = nxt_arr <= lookup.size - 1
-    col_indices = np.where(in_range, lookup[nxt_arr], -1)
+    # Dict lookup — O(N) with small constant, safe for N≤50000
+    col_indices = np.array([mapping.get(nxt, -1) for nxt in nxt_arr], dtype=np.int64)
     valid = col_indices >= 0
 
-    # Build sparse matrix directly in CSR format
     row_ind = col_indices[valid]
     col_ind = np.arange(N, dtype=np.int64)[valid]
     data = np.ones(valid.sum(), dtype=np.float64)

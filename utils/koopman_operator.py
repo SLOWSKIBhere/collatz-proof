@@ -1,15 +1,17 @@
 """
 Koopman operator construction for the accelerated Collatz map.
-Optimised: vectorised operations, set comprehensions, minimal Python loops.
+Optimised: vectorised operations, minimal Python loops, unified backend.
 """
 
 import numpy as np
-from scipy.sparse import lil_matrix, csr_matrix
+from scipy.sparse import csr_matrix
+from utils.collatz_map import accelerated_collatz
 
 
 def bidirectional_closure(initial_set: set, max_steps: int = 50, max_size: int = 50000) -> set:
     """
     Compute the bidirectional closure of a set under the accelerated Collatz map.
+    Uses vectorised accelerated_collatz for forward expansion.
     """
     closure = set(initial_set)
     queue_forward = set(initial_set)
@@ -19,13 +21,15 @@ def bidirectional_closure(initial_set: set, max_steps: int = 50, max_size: int =
         if len(closure) >= max_size:
             break
 
-        # Forward expansion (vectorised logic via set comprehension)
-        new_forward = {
-            n // 2 if n % 2 == 0 else (3 * n + 1) // 2
-            for n in queue_forward
-        } - closure
-        closure.update(new_forward)
-        queue_forward = new_forward
+        # Forward expansion — vectorised
+        if queue_forward:
+            fwd_arr = np.fromiter(queue_forward, dtype=np.int64, count=len(queue_forward))
+            nxt_arr = accelerated_collatz(fwd_arr)
+            new_forward = set(nxt_arr.tolist()) - closure
+            closure.update(new_forward)
+            queue_forward = new_forward
+        else:
+            new_forward = set()
 
         if len(closure) >= max_size:
             break
@@ -51,7 +55,7 @@ def bidirectional_closure(initial_set: set, max_steps: int = 50, max_size: int =
 def compute_closure_safe(start_numbers, max_steps=100, max_size=50000):
     """
     Bidirectional closure matching the original Jupyter implementation.
-    Optimised with set comprehensions.
+    Uses vectorised accelerated_collatz for forward expansion.
     """
     numbers = set(start_numbers)
     queue_forward = set(start_numbers)
@@ -61,10 +65,14 @@ def compute_closure_safe(start_numbers, max_steps=100, max_size=50000):
         if len(numbers) >= max_size:
             break
 
-        next_forward = {
-            n // 2 if n % 2 == 0 else (3 * n + 1) // 2
-            for n in queue_forward
-        } - numbers
+        # Forward — vectorised
+        if queue_forward:
+            fwd_arr = np.fromiter(queue_forward, dtype=np.int64, count=len(queue_forward))
+            nxt_fwd = accelerated_collatz(fwd_arr)
+            next_forward = set(nxt_fwd.tolist()) - numbers
+        else:
+            next_forward = set()
+
         numbers.update(next_forward)
         queue_backward.update(next_forward)
         queue_forward = next_forward
@@ -91,27 +99,38 @@ def compute_closure_safe(start_numbers, max_steps=100, max_size=50000):
     return sorted_numbers, len(sorted_numbers)
 
 
+def _build_lookup(elements: list, mapping: dict) -> np.ndarray:
+    """
+    Build a vectorised lookup array for O(1) mapping of Collatz numbers
+    to matrix indices.
+    """
+    max_val = max(elements)
+    lookup = np.full(max_val + 1, -1, dtype=np.int64)
+    for num, idx in mapping.items():
+        lookup[num] = idx
+    return lookup
+
+
 def build_koopman_matrix(closure) -> tuple:
     """
     Build the Koopman matrix U for the given closed set.
-    Vectorised where possible.
+    Fully vectorised using unified backend and array lookup.
     """
     elements = sorted(closure) if isinstance(closure, set) else list(closure)
     N = len(elements)
 
-    # Build mapping via dictionary comprehension
+    # Build mapping
     mapping = {n: i for i, n in enumerate(elements)}
     reverse_mapping = {i: n for n, i in mapping.items()}
 
-    # Pre-compute next values for all elements
+    # Compute all next values via unified backend
     elements_arr = np.array(elements, dtype=np.int64)
-    even_mask = elements_arr % 2 == 0
-    nxt_arr = np.empty(N, dtype=np.int64)
-    nxt_arr[even_mask] = elements_arr[even_mask] // 2
-    nxt_arr[~even_mask] = (3 * elements_arr[~even_mask] + 1) // 2
+    nxt_arr = accelerated_collatz(elements_arr)
 
-    # Get column indices via dictionary lookup
-    col_indices = np.array([mapping.get(nxt, -1) for nxt in nxt_arr], dtype=np.int64)
+    # Vectorised lookup: build lookup array, mask invalid
+    lookup = _build_lookup(elements, mapping)
+    in_range = nxt_arr <= lookup.size - 1
+    col_indices = np.where(in_range, lookup[nxt_arr], -1)
     valid = col_indices >= 0
 
     # Build sparse matrix directly in CSR format
@@ -133,7 +152,6 @@ def compute_spectrum(U: csr_matrix, k: int = 30) -> dict:
         U_dense = U.toarray()
         eigenvalues = np.linalg.eigvals(U_dense)
     else:
-        # Arnoldi iteration for largest eigenvalues (vectorised)
         eigenvalues = np.zeros(min(N, 100), dtype=complex)
         for i in range(min(N, 100)):
             v = np.random.randn(N)
@@ -143,7 +161,6 @@ def compute_spectrum(U: csr_matrix, k: int = 30) -> dict:
                 v /= np.linalg.norm(v)
             eigenvalues[i] = (v @ (U @ v)) / (v @ v)
 
-    # Trace powers — keep as loop (small k, sparse matrix)
     trace_powers = []
     Uk = U.copy()
     for i in range(1, k + 1):

@@ -11,7 +11,7 @@ build/
 *.ipynb_checkpoints
 
 # Virtual environments
-venv/
+.venv/
 .env/
 
 # Output directories (keep structure, ignore contents)

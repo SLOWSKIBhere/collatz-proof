@@ -12,10 +12,10 @@ This repository provides the complete codebase for the computational verificatio
 
 | Part | Topic | Status |
 |------|-------|--------|
-| **Part A** | Spectral Resolution of Cycles | ✅ 5 independent proofs |
-| **Part B** | Obstruction Theory | ✅ 3 No-Go theorems |
-| **Part C** | 2-Adic Ergodic Proof (Divergence) | ✅ Complete proof |
-| **Part D** | Kinematic Tensor SVD Diagnostics | ✅ Computational tool |
+| **Part A** | Spectral Resolution of Cycles | ✅ 5 independent proofs | `part_a/` |
+| **Part B** | Obstruction Theory | ✅ 3 No-Go theorems | `part_b_obstructions/` |
+| **Part C** | 2-Adic Ergodic Proof (Divergence) | ✅ Complete proof | `part_c_ergodic/` |
+| **Part D** | Kinematic Tensor SVD Diagnostics | ✅ Computational tool | `part_d_tensor/` |
 
 ## Requirements
 
@@ -144,13 +144,14 @@ collatz-proof/
 ├── main.py                          # Entry point (menu + CLI)
 ├── config.py                        # Internal constants
 ├── collatz_analysis.ipynb           # Jupyter notebook
-├── utils/
-│   ├── argparser.py                 # CLI argument parser
-│   ├── collatz_map.py               # Optimised Collatz functions
-│   ├── koopman_operator.py          # Koopman matrix construction
+├── utils/                           # Shared utilities
+│   ├── collatz_map.py               # Multi-backend Collatz functions (JAX/Numba/NumPy)
+│   ├── koopman_operator.py          # Koopman matrix & closure construction
+│   ├── tensor_utils.py              # Tensor SVD construction
+│   ├── test_runner.py               # Unified test registry and executor
+│   ├── visualizer.py                # Auto-plotting and tables
 │   ├── results.py                   # JSON/CSV output
-│   ├── test_runner.py               # Test registry and executor
-│   └── visualizer.py                # Auto-plotting and tables
+│   └── argparser.py                 # CLI argument parser
 ├── part_a/                          # Part A: Spectral Proofs
 │   ├── structural_theorem.py
 │   ├── ruelle_zeta.py
@@ -172,10 +173,22 @@ collatz-proof/
 │   ├── tensor_evolution.py
 │   └── cauchy_criterion.py
 ├── scripts/
-│   └── generate_figures.py          # Generate paper figures
-├── figures/                         # Output figures (PDF)
-└── data/                            # Output data (JSON)
+│   ├── generate_figures.py          # Generate 5 paper figures (PDF)
+│   └── profiling/                   # Performance profiling scripts (gitignored)
+├── figures/                         # Output figures (PDF) — gitignored, keep .gitkeep
+└── data/                            # Output data (JSON) — gitignored, keep .gitkeep
 ```
+
+## Test Results
+
+All 16 tests across all 4 parts pass successfully:
+
+| Part | Tests | Status |
+|------|-------|--------|
+| A — Spectral Proofs | structural, ruelle, essential, boundary, chernoff | ✅ 5/5 |
+| B — Obstruction Theory | lyapunov, lemmas, frequency, obstructions | ✅ 4/4 |
+| C — Ergodic Proof | transition, parity, block_bound, fk_bound | ✅ 4/4 |
+| D — Tensor Diagnostics | tensor_constr, tensor_evol, tensor_cauchy | ✅ 3/3 |
 
 ## Reproducibility
 

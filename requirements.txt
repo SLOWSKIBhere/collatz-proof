@@ -1,11 +1,15 @@
-# requirements.txt
+# Core dependencies
 numpy>=1.24.0
 scipy>=1.10.0
 matplotlib>=3.7.0
-scikit-learn>=1.3.0
-optuna>=3.0.0
-tqdm>=4.65.0
-joblib>=1.3.0
+
+# Optional: for future hyperparameter tuning and metrics
+# scikit-learn>=1.3.0
+# optuna>=3.0.0
+# tqdm>=4.65.0
+# joblib>=1.3.0
+
+# Performance backends (auto-detected, install as needed)
 numba>=0.59.0
 jax>=0.4.20
 jaxlib>=0.4.20

@@ -1,0 +1,23 @@
+{
+  "title": "A Complete Proof of the Collatz Conjecture via Spectral Analysis and Modular Dynamics",
+  "creators": [
+    {
+      "name": "Trikoz, Alexey",
+      "affiliation": "Independent Researcher, Moscow, Russia"
+    }
+  ],
+  "description": "Code repository accompanying the paper 'A Complete Proof of the Collatz Conjecture via Spectral Analysis and Modular Dynamics'. Contains implementations of spectral cycle proofs (Part A), obstruction theory (Part B), 2-adic ergodic divergence proof (Part C), and kinematic tensor SVD diagnostics (Part D).",
+  "keywords": [
+    "Collatz conjecture",
+    "spectral analysis",
+    "Koopman operator",
+    "2-adic dynamics",
+    "ergodic theory",
+    "tensor SVD"
+  ],
+  "license": "MIT",
+  "upload_type": "software",
+  "access_right": "open",
+  "version": "1.0.0",
+  "language": "eng"
+}

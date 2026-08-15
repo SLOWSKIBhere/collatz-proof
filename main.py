@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Main entry point for the Collatz Conjecture Proof — Code Repository.
+Main entry point for the Collatz conjecture experimental code repository.
 
 Two modes:
   python main.py              → Interactive menu
@@ -44,8 +44,8 @@ class Args:
 def interactive_menu():
     """Interactive console menu for selecting and running tests."""
     print("\n" + "=" * 60)
-    print("  COLLATZ CONJECTURE — COMPLETE PROOF")
-    print("  Code Repository")
+    print("  COLLATZ CONJECTURE — EXPERIMENTAL CODE")
+    print("  Finite tests do not constitute a proof")
     print("=" * 60)
 
     args = Args()
@@ -166,7 +166,8 @@ def main():
 
     # CLI mode
     parser = get_full_parser(
-        "Collatz Conjecture: Complete Proof — Code Repository\n"
+        "Collatz Conjecture: Experimental Code Repository\n"
+        "WARNING: finite computations do not prove the conjecture.\n"
         "Accompanies the paper:\n"
         "  'A Complete Proof of the Collatz Conjecture\n"
         "   via Spectral Analysis and 2-Adic Ergodic Dynamics'"

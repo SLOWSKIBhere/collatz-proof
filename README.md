@@ -1,4 +1,10 @@
-# Collatz Conjecture: Complete Proof — Code Repository
+# Collatz Conjecture: Experimental Code Repository
+
+> **Status: NO PROOF.** This repository contains numerical experiments and
+> diagnostics. Passing its tests, or checking any finite range, does not prove
+> convergence for all positive integers. Names inherited from the accompanying
+> manuscript describe its proposed arguments, not independently established
+> theorems.
 
 This repository accompanies the paper **"A Complete Proof of the Collatz Conjecture via Spectral Analysis and 2-Adic Ergodic Dynamics"** by Alexey Trikoz (May 2026).
 
@@ -6,7 +12,8 @@ This repository accompanies the paper **"A Complete Proof of the Collatz Conject
 
 The Collatz conjecture states that for any positive integer n, the sequence defined by n → n/2 (if even) or 3n+1 (if odd) eventually reaches the cycle {1, 4, 2}. Despite verification up to 2.95×10²⁰, the conjecture remained unproven for over 80 years.
 
-This repository provides the complete codebase for the computational verification of all theorems in the paper.
+This repository provides code for testing claims and reproducing numerical
+experiments from the paper; it does not computationally verify a general proof.
 
 ## Paper Structure
 
@@ -14,7 +21,7 @@ This repository provides the complete codebase for the computational verificatio
 |------|-------|--------|
 | **Part A** | Spectral Resolution of Cycles | ✅ 5 independent proofs | `part_a/` |
 | **Part B** | Obstruction Theory | ✅ 3 No-Go theorems | `part_b_obstructions/` |
-| **Part C** | 2-Adic Ergodic Proof (Divergence) | ✅ Complete proof | `part_c_ergodic/` |
+| **Part C** | Proposed 2-Adic ergodic argument | ⚠️ Experimental tests only | `part_c_ergodic/` |
 | **Part D** | Kinematic Tensor SVD Diagnostics | ✅ Computational tool | `part_d_tensor/` |
 
 ## Requirements
@@ -48,6 +55,25 @@ pip install -r requirements.txt
 
 ## Quick Start
 
+### Bounded range checker
+
+`collatz_range_checked.c` is a deliberately limited verification utility. It
+strictly accepts positive decimal bounds, checks every input in the inclusive
+range, guards `3n+1` before unsigned 64-bit overflow, and emits one JSON record
+whose `complete` field distinguishes a finished sweep from an inconclusive
+step limit or overflow:
+
+```bash
+cc -std=c11 -O3 -Wall -Wextra -Werror collatz_range_checked.c -o collatz_range_checked
+./collatz_range_checked 1 1000000000 | tee data/collatz_1_1000000000.json
+```
+
+Exit status `0` means the stated finite range was completely checked; `2`
+means a trajectory reached the step limit, `3` means it could not continue in
+`uint64_t`, and `64` means the command line was invalid. Even a complete run is
+only a bounded computational result and has no implication for all positive
+integers.
+
 ### Interactive Menu (recommended)
 
 Launch the interactive console menu — no command-line arguments needed:
@@ -59,8 +85,8 @@ python main.py
 You will see:
 
 ```
-  COLLATZ CONJECTURE — COMPLETE PROOF
-  Code Repository
+  COLLATZ CONJECTURE — EXPERIMENTAL CODE
+  Finite tests do not constitute a proof
 ============================================================
 
 Select a part to run:

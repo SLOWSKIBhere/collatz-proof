@@ -1,4 +1,7 @@
-# 考拉兹猜想：完整证明 — 代码仓库
+# 考拉兹猜想：实验代码仓库
+
+> **状态：尚无证明（NO PROOF）。** 本仓库包含数值实验和诊断测试。测试通过或
+> 验证任意有限范围，都不能证明所有正整数均收敛。
 
 本仓库附属于论文 **"A Complete Proof of the Collatz Conjecture via Spectral Analysis and Modular Dynamics"**（Alexey Trikoz，2026年5月）。
 
